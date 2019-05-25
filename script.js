@@ -15,10 +15,13 @@ let hitButton = document.getElementById('Hit');
 let stayButton = document.getElementById('Stay');
 let paragraph = document.getElementById('text-area');
 
+
 // Game variables
 
 let gameStarted = false;
 let deck = [];
+let dealerCards = [];
+let playerCards = [];
 let playerValue = 0;
 let dealerValue = 0;
 
@@ -28,8 +31,18 @@ function showStatus()
   {
     hitButton.style.display = 'none';
     stayButton.style.display = 'none';
-    paragraph.innerText = 
-    "Welcome to Blackjack\n Press the New Game button To start playing";
+    paragraph.innerText = "Let's Play\n";
+  }
+  else
+  {
+    dealerValue = calculateTotal(dealerCards);
+    playerValue = calculateTotal(playerCards);
+    newGameButton.style.display = 'none';
+    hitButton.style.display = 'inline';
+    stayButton.style.display = 'inline';
+    paragraph.innerText = "The Dealer's cards are -\n  "
+    + displayCards(dealerCards) + "Dealer's score: "+ dealerValue + "\n\nThe Player's cards are -\n "
+    + displayCards(playerCards) + "Player's score: " + playerValue + "\n";
   }
 }
 // Event handlers
@@ -39,6 +52,13 @@ newGameButton.addEventListener('click',function(){
   deck = createDeck();
   shuffleDeck(deck);
 
+  // Cards given at the start of the game.
+  playerCards.push(getNextCard());
+  dealerCards.push(getNextCard());
+  playerCards.push(getNextCard());
+  dealerCards.push(getNextCard());
+
+  showStatus();
 });
 
 hitButton.addEventListener('click',function(){
@@ -68,16 +88,27 @@ function createDeck()
     return deck;
 }
 
-
 function getNextCard()
 {
     return deck.shift();
 }
 
-function displayCard(card)
+function displayCards(cards)
 {
-    let result = card.value + " of " + card.suit;
-    return result;
+  let cardText = ""
+  for(let i = 0;i<cards.length;i++)
+  {
+      cardText += cards[i].value + " of " + cards[i].suit + "\n";
+  }
+  return cardText;
+}
+
+function calculateTotal(cards)
+{
+  let totalValue = 0;
+    for(let i = 0;i<cards.length;i++)
+      totalValue += addVal(cards[i].value);
+  return totalValue; 
 }
 
 function shuffleDeck(deck)
@@ -91,4 +122,22 @@ function shuffleDeck(deck)
   }
 }
 
-let playerCards = [getNextCard(),getNextCard()];
+function addVal(value)
+{
+  switch(value)
+  {
+    case "Ace": return 1;
+    case "Two": return 2;
+    case "Three": return 3;
+    case "Four": return 4;
+    case "Five": return 5;
+    case "Six": return 6;
+    case "Seven":return 7;
+    case "Eight": return 8;
+    case "Nine": return 9;
+    case "Ten": return 10;
+    default: return 10;
+  }
+}
+
+showStatus();
