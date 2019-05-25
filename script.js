@@ -19,6 +19,8 @@ let paragraph = document.getElementById('text-area');
 // Game variables
 
 let gameStarted = false;
+let gameEnded = false;
+let playerWon = false;
 let deck = [];
 let dealerCards = [];
 let playerCards = [];
@@ -35,22 +37,47 @@ function showStatus()
   }
   else
   {
-    dealerValue = calculateTotal(dealerCards);
-    playerValue = calculateTotal(playerCards);
     newGameButton.style.display = 'none';
     hitButton.style.display = 'inline';
     stayButton.style.display = 'inline';
+
+    dealerValue = calculateTotal(dealerCards);
+    playerValue = calculateTotal(playerCards);
+    
     paragraph.innerText = "The Dealer's cards are -\n  "
     + displayCards(dealerCards) + "Dealer's score: "+ dealerValue + "\n\nThe Player's cards are -\n "
-    + displayCards(playerCards) + "Player's score: " + playerValue + "\n";
+    + displayCards(playerCards) + "Player's score: " + playerValue + "\n\n";
+    if(!gameEnded)
+    {
+      paragraph.innerText += "Please make your next move\n";
+    }
+    else
+    {
+      if(playerWon)
+        paragraph.innerText += "PLAYER WINS!\n";
+      else
+        paragraph.innerText += "DEALER WINS!\n";
+      
+      newGameButton.style.display = 'inline';
+      hitButton.style.display = 'none';
+      stayButton.style.display = 'none';
+
+      paragraph.innerText += "Please click the New Game button to play again!\n"
+    }
   }
 }
+
 // Event handlers
 newGameButton.addEventListener('click',function(){
 
   gameStarted = true;
+  gameEnded = false;
+  playerWon = false;
   deck = createDeck();
   shuffleDeck(deck);
+
+  playerCards = [];
+  dealerCards = [];
 
   // Cards given at the start of the game.
   playerCards.push(getNextCard());
@@ -62,13 +89,16 @@ newGameButton.addEventListener('click',function(){
 });
 
 hitButton.addEventListener('click',function(){
-
+  playerCards.push(getNextCard());
+  CheckGameResult();
+  showStatus();
 });
 
 stayButton.addEventListener('click',function(){
-
+  gameEnded = true;
+  CheckGameResult();
+  showStatus();
 });
-
 
 // Miscellaneous Methods
 function createDeck()
@@ -86,6 +116,17 @@ function createDeck()
       }
     }
     return deck;
+}
+
+function shuffleDeck(deck)
+{
+  for(let cardIdx = 0; cardIdx < deck.length;cardIdx++)
+  {
+    let shuffleIdx = Math.trunc(Math.random()*52);
+    let temp = deck[shuffleIdx];
+    deck[shuffleIdx] = deck[cardIdx];
+    deck[cardIdx] = temp;
+  }
 }
 
 function getNextCard()
@@ -111,17 +152,6 @@ function calculateTotal(cards)
   return totalValue; 
 }
 
-function shuffleDeck(deck)
-{
-  for(let cardIdx = 0; cardIdx < deck.length;cardIdx++)
-  {
-    let shuffleIdx = Math.trunc(Math.random()*52);
-    let temp = deck[shuffleIdx];
-    deck[shuffleIdx] = deck[cardIdx];
-    deck[cardIdx] = temp;
-  }
-}
-
 function addVal(value)
 {
   switch(value)
@@ -140,4 +170,39 @@ function addVal(value)
   }
 }
 
+function updateScores()
+{
+   playerValue = 0,dealerValue = 0;
+   for(let i = 0;i < playerCards.length;i++)
+      playerValue += addVal(playerCards[i].value);
+   for(let i = 0;i < dealerCards.length;i++)
+      dealerValue += addVal(dealerCards[i].value);
+}
+
+function CheckGameResult()
+{
+  if(gameEnded == true)
+  {
+    while(dealerValue < 17)
+    {
+      dealerCards.push(getNextCard());
+      updateScores();
+    }
+    if(dealerValue > 21)
+      playerWon = true;
+    else if(dealerValue < playerValue)
+      playerWon = true;
+    else
+      playerWon = false;
+  }
+  else
+  {
+    updateScores();
+    if(playerValue > 21)
+    {
+      gameEnded = true;
+      playerWon = false;
+    }
+  }
+}
 showStatus();
